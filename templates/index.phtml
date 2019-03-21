@@ -1,0 +1,117 @@
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+          integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
+            integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
+            crossorigin=""></script>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style type="text/css">
+        #page{
+            margin: 0 10%;
+        }
+        #mapid{ height: 60%; width: 100%%; }
+    </style>
+    <title>TP4</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body>
+
+<div id="page">
+    <div id="psuedoConnexion" style="border: solid black 1px">
+        <legend>Jouer a city locate</legend>
+        <label for="psuedo">Psuedo pour la partie :</label>
+        <input id="psuedo" type="text">
+        <p id="erreurPsuedo"></p>
+        <hr>
+        <button id="seConnecterPourJouer" class="btn btn-info">Se connecter</button>
+        <button id="play" class="btn btn-success">Jouer</button>
+    </div>
+    <div id="playGame">
+        <h3 id="bienvenuePsuedo"></h3>
+        <h4>Choisissez une carte</h4>
+        <input  type="radio"  class="btn btn-primary" name="ville" checked="checked" id="froideconche"><label for="paris">Froideconche</label><br>
+        <input type="radio" name="ville" id="belfort"> <label for="belfort">Belfort</label><br>
+        <h4>Choisissez un niveau</h4>
+        <div id="lvl">
+            <input type="radio" class="btn btn-primary" name="difficulte" checked="checked"  id="facile"><label for="facile">Facile</label><br>
+            <input type="radio" name="difficulte" id="normal"><label for="normal">Normal</label><br>
+            <input type="radio" name="difficulte" id="difficile"><label for="difficile">Difficile</label>
+        </div>
+        <hr>
+        <button id="startGame">Jouer !</button>
+    </div>
+    <div id="game">
+        <h3 id="psuedoPartie"></h3>
+        <h4 id="score">Score :</h4>
+        <h4>Niveau 1/10</h4>
+        <div id="mapid"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var monToken;
+    var user;
+    var psuedo
+    $(function(){
+        monToken = "";
+        $.get("http://localhost:8080/getToken",function(data){
+            monToken = data;
+        });
+        $("#playGame").hide();
+        $("#mapid").hide();
+        $("#game").hide();
+    });
+
+    $("#play").click(function () {
+        $("#game").hide();
+        psuedo=$("#psuedo").val();
+        if (psuedo.length<4){
+            $("#erreurPsuedo").addClass("alert alert-danger");
+            $("#erreurPsuedo").text("Votre psuedo doit faire au moins 4 caracteres");
+            console.log(psuedo);
+            return;
+        }
+        $("#erreurPsuedo").removeClass("alert alert-danger");
+        $("#erreurPsuedo").text("");
+
+        $("#psuedoConnexion").hide();
+        $("#bienvenuePsuedo").text("Bienvenue "+psuedo);
+        $("#playGame").show();
+
+        
+    });
+    $("#startGame").click(function (data) {
+        var partie=[];
+        if (document.getElementById('froideconche').checked) partie['ville']="froideconche";
+        else partie['ville']="belfort";
+
+
+        if (document.getElementById('facile').checked) partie['difficulte']="facile";
+        else if (document.getElementById('normal').checked) partie['difficulte']="normal";
+        else  partie['difficulte']="difficile";
+
+        $("#game").show();
+        $("#mapid").show();
+        var mymap = L.map('mapid').setView([47.6333, 6.8667], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            id: 'mapbox.streets',
+        }).addTo(mymap);
+
+        mymap.on('click',function (e) {
+            var marker = L.marker(e.latlng).addTo(mymap);
+
+        })
+        $("#playGame").hide();
+        $("#psuedoPartie").text(psuedo+ " vous jouez avec "+partie['ville']+" en difficulté "+partie['difficulte']);
+
+        console.log(partie);
+    })
+
+
+</script>
+</body>
+</html>
